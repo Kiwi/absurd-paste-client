@@ -47,27 +47,27 @@ maintainer:          envy1988@gmail.com
 extra-source-files:  CHANGELOG.md
 
 
-library
+--library
   -- Modules exported by the library.
-  -- exposed-modules:
+  --  exposed-modules:
 
   -- Modules included in this library but not exported.
-  -- other-modules:
+  --  other-modules:
 
   -- LANGUAGE extensions used by modules in this package.
   -- other-extensions:
 
   -- Other library packages from which modules are imported.
-  build-depends:       base ^>=4.12.0.0
+--  build-depends:       base ^>=4.12.0.0
 
   -- Directories containing source files.
-  hs-source-dirs:      src
+--  hs-source-dirs:      src
 
   -- Base language which the package is written in.
-  default-language:    Haskell98
+--  default-language:    Haskell98
 
 
-executable absurd-paste-client
+executable apc
   -- .hs or .lhs file containing the Main module.
   main-is:             Main.hs
 
@@ -78,7 +78,14 @@ executable absurd-paste-client
   -- other-extensions:
 
   -- Other library packages from which modules are imported.
-  build-depends:       base ^>=4.12.0.0
+  build-depends:       base ^>=4.13.0.0
+                     , HsOpenSSL
+                     , bytestring
+                     , http-streams
+                     , io-streams
+                     , openssl-streams
+                     , optparse-applicative
+                     , text
 
   -- Directories containing source files.
   hs-source-dirs:      src
@@ -86,3 +93,4 @@ executable absurd-paste-client
   -- Base language which the package is written in.
   default-language:    Haskell98
 
+  ghc-options:      -j -threaded -Wall -Wcompat -W -Wtabs -rtsopts -fno-max-valid-hole-fits -fno-max-relevant-binds -fwarn-unused-imports -fwarn-unused-binds -ddump-minimal-imports
