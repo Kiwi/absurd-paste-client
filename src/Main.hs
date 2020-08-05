@@ -1,17 +1,20 @@
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 module Main where
 
 -- Main.imports
-import qualified Data.ByteString               as S
-import qualified Data.ByteString.Char8         as C
-
 import           Control.Monad                  ( forM
                                                 , when
                                                 )
+import qualified Data.ByteString               as S
+import qualified Data.ByteString.Char8         as C
 import           Data.Coerce                    ( coerce )
 import           Data.Either                    ( rights )
+import           Data.Functor                   ( (<&>) )
 import           Network.Http.Client            ( Hostname
                                                 , Method(POST)
                                                 , Port
@@ -62,6 +65,7 @@ data Uppity =
     { debug :: Mode
     , language :: Language
     , expiretime :: ExpireTime
+    , serviceLangs :: [Lexer]
     , inputs :: [Input]
     }
 
@@ -215,8 +219,30 @@ parseExpires = option
   <> value ExpDefault
   )
 
+parseLanguageService :: ReadM [Lexer]
+parseLanguageService = eitherReader $ \case
+  "dpaste.org" ->
+    Right $ listLangsForService allLangsNoDefault dpasteOrgLanguages
+  _ -> Left "Invalid service name"
+
+parseListLanguages :: Parser [Lexer]
+parseListLanguages = option
+  parseLanguageService
+  (  long "list-languages"
+  <> short 'L'
+  <> help "list supported languages for a service"
+  <> metavar "SERVICE"
+  <> value []
+  )
+
 uppity :: Parser Uppity
-uppity = Uppity <$> parseMode <*> parseLanguage <*> parseExpires <*> input
+uppity =
+  Uppity
+    <$> parseMode
+    <*> parseLanguage
+    <*> parseExpires
+    <*> parseListLanguages
+    <*> input
 
 main :: IO ()
 main = execParser opts >>= run
@@ -229,20 +255,30 @@ opts = info
   )
 
 run :: Uppity -> IO ()
-run (Uppity mode lang exptime targets) = do
-  strs <- forM
-    targets
-    (\t -> do
-      x <- getInputString t
-      apcPost (dpasteOrg (C.pack x) lang exptime) mode
-    )
-  mapM_ S.putStr (rights strs)
+run (Uppity mode lang exptime svcLang targets) = do
+  if length svcLang > 0
+    then do
+      let strs = map (\l -> " " `S.append` unLexer l) svcLang
+      mapM_ S.putStr strs
+      putStrLn ""
+    else do
+      strs <- forM
+        targets
+        (\t -> do
+          x <- getInputString t
+          apcPost (dpasteOrg (C.pack x) lang exptime) mode
+        )
+      mapM_ S.putStr (rights strs)
 
 type Content = C.ByteString
 
 type Format = C.ByteString
 
-type Lexer = C.ByteString
+newtype Lexer =
+  Lexer
+    { unLexer :: C.ByteString
+    }
+  deriving newtype (Show, Read)
 
 type Expires = C.ByteString
 
@@ -279,7 +315,7 @@ dpasteOrgNvs :: Content -> Language -> ExpireTime -> NameValues
 dpasteOrgNvs c l et = NameValues
   [ ("content", c)
   , ("format" , "url")
-  , ("lexer"  , dpasteOrgLanguages l)
+  , ("lexer"  , unLexer $ dpasteOrgLanguages l)
   , ("expires", dpasteOrgExpires et)
   ]
 
@@ -376,9 +412,19 @@ data Language
   | LangXslt
   | LangYaml
   | LangDefault
+  deriving (Enum, Bounded, Show, Read, Eq)
+
+allLangs :: [Language]
+allLangs = [(minBound :: Language) .. (maxBound :: Language)]
+
+allLangsNoDefault :: [Language]
+allLangsNoDefault = filter (/= LangDefault) allLangs
+
+listLangsForService :: [Language] -> (Language -> Lexer) -> [Lexer]
+listLangsForService = (<&>)
 
 dpasteOrgLanguages :: Language -> Lexer
-dpasteOrgLanguages = \case
+dpasteOrgLanguages = Lexer . \case
   LangText        -> "_text"
   LangMarkdown    -> "_markdown"
   LangRst         -> "_rst"
