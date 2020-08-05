@@ -1,3 +1,6 @@
+#!/usr/bin/env nix-shell
+#!nix-shell --quiet -p "haskellPackages.ghcWithPackages (p: with p; [optparse-applicative http-streams])" -i runhaskell
+
 {-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
