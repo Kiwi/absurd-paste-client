@@ -33,6 +33,7 @@ import           Types                          ( Uppity
                                                   ( Uppity
                                                   , debug
                                                   , listServices
+                                                  , listExpires
                                                   , service
                                                   , language
                                                   , expiretime
@@ -64,7 +65,7 @@ main = execParser opts >>= run
 
 
 run :: Uppity -> IO ()
-run Uppity { debug = mode, listServices = listSvcs, service = srvc, language = lang, expiretime = exptime, serviceLangs = svcLang, inputs = targets }
+run Uppity { debug = mode, listServices = listSvcs, listExpires = listExps, service = srvc, language = lang, expiretime = exptime, serviceLangs = svcLang, inputs = targets }
   = do
     if listSvcs
       then do
@@ -76,16 +77,22 @@ run Uppity { debug = mode, listServices = listSvcs, service = srvc, language = l
             let strs = map (\l -> " " `S.append` unLexer l) svcLang
             mapM_ S.putStr strs
             putStrLn ""
-          else do
-            strs <- forM
-              targets
-              (\t -> do
-                x <- getInputString t
-                case srvc of
-                  DpasteCom -> apcPost (dpasteCom (C.pack x) lang exptime) mode
-                  DpasteOrg -> apcPost (dpasteOrg (C.pack x) lang exptime) mode
-              )
-            mapM_ S.putStr (rights strs)
+          else if not (null listExps)
+            then do
+              mapM_ putStrLn listExps
+              putStrLn ""
+            else do
+              strs <- forM
+                targets
+                (\t -> do
+                  x <- getInputString t
+                  case srvc of
+                    DpasteCom ->
+                      apcPost (dpasteCom (C.pack x) lang exptime) mode
+                    DpasteOrg ->
+                      apcPost (dpasteOrg (C.pack x) lang exptime) mode
+                )
+              mapM_ S.putStr (rights strs)
 
 apcPost :: Service -> Mode -> IO (Either C.ByteString C.ByteString)
 apcPost Service { s_host = host, s_port = port, s_endpoint = endpoint, s_nvs = nvs } mode

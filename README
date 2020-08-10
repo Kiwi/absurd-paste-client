@@ -1,13 +1,19 @@
 absurd-paste-client
 
-Usage: apc [-d|--debug] [-l|--language LANGUAGE] [-e|--expires EXPIRES]
-           [(-f|--file FILENAME) | --stdin | FILES...]
-  the mostly absurd paste client aka apc
+Usage: apc [(-f|--file FILENAME) | --stdin | FILES...] [-s|--service SERVICE] 
+           [-l|--language LANGUAGE] [-e|--expires EXPIRES] 
+           [-E|--expiretimes SERVICE] [-S|--services] [-L|--languages SERVICE] 
+           [-d|--debug]
+  The (mostly) absurd paste client AKA apc
 
 Available options:
-  -d,--debug               Enable debug mode
-  -l,--language LANGUAGE   Language for syntax highlighting
-  -e,--expires EXPIRES     How long before paste expires
   -f,--file FILENAME       Input file
   --stdin                  Paste from stdin
+  -s,--service SERVICE     Paste service to use
+  -l,--language LANGUAGE   language for syntax highlighting
+  -e,--expires EXPIRES     How long before paste expires
+  -E,--expiretimes SERVICE list supported expiretimes for SERVICE
+  -S,--services            list supported services
+  -L,--languages SERVICE   list supported languages for SERVICE
+  -d,--debug               Enable debug mode
   -h,--help                Show this help text

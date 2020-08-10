@@ -24,6 +24,7 @@ data Uppity =
     , service :: ServiceName
     , language :: Language
     , expiretime :: ExpireTime
+    , listExpires :: [String]
     , listServices :: Bool
     , serviceLangs :: [Lexer]
     , debug :: Mode

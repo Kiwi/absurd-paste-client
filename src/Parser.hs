@@ -160,6 +160,22 @@ parseListLanguages = option
   <> value []
   )
 
+parseListExpires :: ReadM [String]
+parseListExpires = eitherReader $ \case
+  "dpaste.com" ->
+    Right ["1-day", "1-week", "1-month", "1-year", "[1-365]-days"]
+  "dpaste.org" -> Right ["onetime", "1-hour", "1-day", "1-week"]
+  _            -> Left "Invalid service name"
+
+parserListExpires :: Parser [String]
+parserListExpires = option
+  parseListExpires
+  (  long "expiretimes"
+  <> short 'E'
+  <> help "list supported expiretimes for SERVICE"
+  <> metavar "SERVICE"
+  <> value []
+  )
 
 parserListServices :: Parser Bool
 parserListServices =
@@ -172,6 +188,7 @@ uppity =
     <*> parserService
     <*> Parser.parseLanguage
     <*> parseExpires
+    <*> parserListExpires
     <*> parserListServices
     <*> parseListLanguages
     <*> parseMode
