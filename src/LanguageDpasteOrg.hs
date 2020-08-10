@@ -45,7 +45,7 @@ dpasteOrgExpires = \case
   ExpDay     -> "86400"
   ExpWeek    -> "604800"
   ExpOneTime -> "onetime"
-  _          -> "3600"
+  _          -> "604800"
 
 dpasteOrgLanguages :: Language -> Maybe Lexer
 dpasteOrgLanguages = \case
