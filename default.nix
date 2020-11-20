@@ -14,12 +14,18 @@ haskellNix ? import (builtins.fetchTarball
 
   # import nixpkgs with overlays
 , pkgs ? import nixpkgsSrc nixpkgsArgs }:
-pkgs.haskell-nix.project {
-  # 'cleanGit' cleans a source directory based on the files known by git
-  src = pkgs.haskell-nix.haskellLib.cleanGit {
-    name = "absurd-paste-client";
-    src = ./.;
+let
+  apc-project = pkgs.haskell-nix.project {
+    index-state = "2020-11-20T00:00:00Z";
+    # 'cleanGit' cleans a source directory based on the files known by git
+    src = pkgs.haskell-nix.haskellLib.cleanGit {
+      name = "absurd-paste-client";
+      src = ./.;
+    };
+    # For `cabal.project` based projects specify the GHC version to use.
+    compiler-nix-name = "ghc884"; # Not used for `stack.yaml` based projects.
   };
-  # For `cabal.project` based projects specify the GHC version to use.
-  compiler-nix-name = "ghc884"; # Not used for `stack.yaml` based projects.
+in {
+  project = apc-project.absurd-paste-client.components.exes.apc;
+  apc-project = apc-project;
 }
